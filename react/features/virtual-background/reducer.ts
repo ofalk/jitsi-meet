@@ -9,6 +9,8 @@ export interface IVirtualBackground {
     backgroundEffectEnabled?: boolean;
     backgroundType?: string;
     blurValue?: number;
+    chromaColor?: string;
+    chromaEnabled?: boolean;
     selectedThumbnail?: string;
     virtualSource?: string;
 }
@@ -25,7 +27,7 @@ export interface IVirtualBackground {
  * specified action.
  */
 ReducerRegistry.register<IVirtualBackground>(STORE_NAME, (state = {}, action): IVirtualBackground => {
-    const { virtualSource, backgroundEffectEnabled, blurValue, backgroundType, selectedThumbnail } = action;
+    const { virtualSource, backgroundEffectEnabled, blurValue, backgroundType, selectedThumbnail, chromaColor, chromaEnabled } = action;
 
     /**
      * Sets up the persistence of the feature {@code virtual-background}.
@@ -39,7 +41,9 @@ ReducerRegistry.register<IVirtualBackground>(STORE_NAME, (state = {}, action): I
             virtualSource,
             blurValue,
             backgroundType,
-            selectedThumbnail
+            selectedThumbnail,
+            chromaColor,
+            chromaEnabled
         };
     }
     case BACKGROUND_ENABLED: {

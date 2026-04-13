@@ -6,7 +6,8 @@
 export const VIRTUAL_BACKGROUND_TYPE = {
     IMAGE: 'image',
     BLUR: 'blur',
-    NONE: 'none'
+    NONE: 'none',
+    CHROMA: 'chroma'
 };
 
 

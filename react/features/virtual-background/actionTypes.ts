@@ -17,7 +17,9 @@ export const BACKGROUND_ENABLED = 'BACKGROUND_ENABLED';
  *     virtualSource: string,
  *     blurValue: number,
  *     backgroundType: string,
- *     selectedThumbnail: string
+ *     selectedThumbnail: string,
+ *     chromaColor: string,
+ *     chromaEnabled: boolean
  * }}
  */
 export const SET_VIRTUAL_BACKGROUND = 'SET_VIRTUAL_BACKGROUND';

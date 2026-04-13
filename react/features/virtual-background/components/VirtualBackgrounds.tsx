@@ -144,6 +144,59 @@ const useStyles = makeStyles()(theme => {
             background: '#7e8287'
         },
 
+        chroma: {
+            boxShadow: 'inset 0 0 12px #000000',
+            background: '#00aa00',
+            padding: '8px'
+        },
+
+        chromaToggle: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing(2),
+            marginBottom: theme.spacing(2),
+            padding: theme.spacing(1)
+        },
+
+        chromaToggleLabel: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing(1),
+            cursor: 'pointer',
+            fontWeight: 'bold'
+        },
+
+        chromaToggleInput: {
+            cursor: 'pointer'
+        },
+
+        chromaColorPicker: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing(1)
+        },
+
+        chromaColorLabel: {
+            fontSize: '12px'
+        },
+
+        chromaColorInputLarge: {
+            width: '50px',
+            height: '30px',
+            cursor: 'pointer',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '2px'
+        },
+
+        chromaColorInput: {
+            width: '100%',
+            height: '100%',
+            cursor: 'pointer',
+            border: 'none',
+            padding: '0'
+        },
+
         storedImageContainer: {
             position: 'relative',
             display: 'flex',
@@ -263,6 +316,63 @@ function VirtualBackgrounds({
         }
     }, [ enableSlideBlur ]);
 
+    const enableChroma = useCallback(async (color: string) => {
+        onOptionsChange({
+            backgroundEffectEnabled: true,
+            backgroundType: VIRTUAL_BACKGROUND_TYPE.IMAGE,
+            virtualSource: options?.virtualSource,
+            chromaColor: color,
+            chromaEnabled: true,
+            selectedThumbnail: options?.selectedThumbnail
+        });
+        logger.info(`Chroma key enabled with color: ${color}!`);
+
+    }, [ options?.selectedThumbnail, options?.virtualSource ]);
+
+    const disableChroma = useCallback(async () => {
+        onOptionsChange({
+            backgroundEffectEnabled: true,
+            backgroundType: options?.backgroundType,
+            virtualSource: options?.virtualSource,
+            chromaEnabled: false,
+            selectedThumbnail: options?.selectedThumbnail
+        });
+        logger.info('Chroma key disabled!');
+
+    }, [ options?.backgroundType, options?.selectedThumbnail, options?.virtualSource ]);
+
+    const handleColorSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onOptionsChange({
+            backgroundEffectEnabled: true,
+            chromaEnabled: true,
+            backgroundType: VIRTUAL_BACKGROUND_TYPE.IMAGE,
+            virtualSource: options?.virtualSource,
+            chromaColor: e.target.value,
+            selectedThumbnail: options?.selectedThumbnail
+        });
+    }, [ onOptionsChange, options?.virtualSource, options?.selectedThumbnail ]);
+
+    const handleColorPickerClick = useCallback(() => {
+        onOptionsChange({
+            backgroundEffectEnabled: false,
+            chromaEnabled: true,
+            backgroundType: VIRTUAL_BACKGROUND_TYPE.IMAGE,
+            virtualSource: options?.virtualSource,
+            chromaColor: options?.chromaColor || '#00ff00',
+            selectedThumbnail: options?.selectedThumbnail
+        });
+    }, [ onOptionsChange, options?.virtualSource, options?.selectedThumbnail, options?.chromaColor ]);
+
+    const handleChromaToggle = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const enabled = e.target.checked;
+
+        if (enabled) {
+            enableChroma(options?.chromaColor || '#00ff00');
+        } else {
+            disableChroma();
+        }
+    }, [ enableChroma, disableChroma, options?.chromaColor ]);
+
     const removeBackground = useCallback(async () => {
         onOptionsChange({
             backgroundEffectEnabled: false,
@@ -301,12 +411,15 @@ function VirtualBackgrounds({
         if (image) {
             try {
                 const url = await toDataURL(image.src);
+                const keepChroma = options?.chromaEnabled;
 
                 onOptionsChange({
                     backgroundEffectEnabled: true,
                     backgroundType: VIRTUAL_BACKGROUND_TYPE.IMAGE,
                     selectedThumbnail: image.id,
-                    virtualSource: url
+                    virtualSource: url,
+                    chromaEnabled: keepChroma,
+                    chromaColor: keepChroma ? options?.chromaColor : undefined
                 });
                 logger.info('Image set for virtual background preview!');
             } catch (err) {
@@ -315,7 +428,7 @@ function VirtualBackgrounds({
 
             setLoading(false);
         }
-    }, []);
+    }, [ options?.chromaEnabled, options?.chromaColor ]);
 
     const setImageBackgroundKeyPress = useCallback(e => {
         if (e.key === ' ' || e.key === 'Enter') {
@@ -352,6 +465,7 @@ function VirtualBackgrounds({
         }, {})
     };
     const currentBackgroundLabel = options?.selectedThumbnail ? labelsMap[options.selectedThumbnail] : labelsMap.none;
+    const hasImageBackground = options?.backgroundType === VIRTUAL_BACKGROUND_TYPE.IMAGE && options?.virtualSource;
     const isThumbnailSelected = useCallback(thumbnail => options?.selectedThumbnail === thumbnail, [ options ]);
     const getSelectedThumbnailClass = useCallback(
         thumbnail => isThumbnailSelected(thumbnail) && classes.selectedThumbnail, [ isThumbnailSelected, options ]
@@ -376,6 +490,31 @@ function VirtualBackgrounds({
                             background: currentBackgroundLabel
                         }) }
                     </span>
+                    { hasImageBackground && (
+                        <div className = { classes.chromaToggle }>
+                            <label className = { classes.chromaToggleLabel }>
+                                <input
+                                    checked = { Boolean(options?.chromaEnabled) }
+                                    className = { classes.chromaToggleInput }
+                                    onChange = { handleChromaToggle }
+                                    type = 'checkbox' />
+                                { t('virtualBackground.enableChromaKey') }
+                            </label>
+                            { options?.chromaEnabled && (
+                                <div className = { classes.chromaColorPicker }>
+                                    <span className = { classes.chromaColorLabel }>
+                                        { t('virtualBackground.selectColor') }:
+                                    </span>
+                                    <input
+                                        className = { classes.chromaColorInputLarge }
+                                        onChange = { handleColorSelected }
+                                        onClick = { handleColorPickerClick }
+                                        type = 'color'
+                                        value = { options?.chromaColor || '#00ff00' } />
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {_showUploadButton
                     && <UploadImageButton
                         setLoading = { setLoading }

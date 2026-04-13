@@ -53,7 +53,9 @@ export function setVirtualBackground(options?: IVirtualBackground) {
         virtualSource: options?.virtualSource,
         blurValue: options?.blurValue,
         backgroundType: options?.backgroundType,
-        selectedThumbnail: options?.selectedThumbnail
+        selectedThumbnail: options?.selectedThumbnail,
+        chromaColor: options?.chromaColor,
+        chromaEnabled: options?.chromaEnabled
     };
 }
 
